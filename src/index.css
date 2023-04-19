@@ -56,10 +56,9 @@
 @import url(./blocks/header/__nav/header__nav.css);
 @import url(./blocks/header/__button/header__button.css);
 @import url(./blocks/header/__email/header__email.css);
-/* @import url(./blocks/header/__button/_active/header__button_active.css); */
 @import url(./blocks/footer/footer.css);
 @import url(./blocks/footer/__copyright/footer__copyright.css);
-@import url(./blocks/register/register.css);
-@import url(./blocks/login/login.css);
+@import url(./blocks/authform/authform.css);
+
 
 

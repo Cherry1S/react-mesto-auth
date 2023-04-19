@@ -38,13 +38,17 @@ function App() {
   function tokenCheck() {
     if (localStorage.getItem('jwt')) {
       const jwt = localStorage.getItem('jwt')
-      auth.getContent(jwt).then((res) => {
-        if (res.data) {
-          setCurrentEmail(res.data.email)
-          setLoggedIn(true)
-          navigate('/')
-        }
-      })
+      auth.getContent(jwt)
+        .then((res) => {
+          if (res.data) {
+            setCurrentEmail(res.data.email)
+            setLoggedIn(true)
+            navigate('/')
+          }
+        })
+        .catch((err) => {
+          console.log(err)
+        });
     }
   }
 
@@ -134,21 +138,6 @@ function App() {
       })
   }
 
-  const handleLogin = () => {
-    setLoggedIn(true);
-  }
-
-  const handleLogout = () => {
-    localStorage.removeItem('jwt');
-    setLoggedIn(false);
-    navigate('/sign-in');
-  }
-
-  const showInfoTooltip = (isOk) => {
-    setIsRegisterOk(isOk);
-    setInfoTooltipPopupOpen(true);
-  }
-
   const closeAllPopups = () => {
     setEditProfilePopupOpen(false);
     setAddPlacePopupOpen(false);
@@ -159,47 +148,82 @@ function App() {
     setSelectedCard({});
   }
 
+  const showInfoTooltip = (isOk) => {
+    setIsRegisterOk(isOk)
+    setInfoTooltipPopupOpen(true);
+  }
+
+  const handleLoginSubmit = (email, password) => {
+    auth.authorize(email, password)
+      .then((data) => {
+        if (data.token) {
+          setLoggedIn(true);
+          navigate('/', { replace: true });
+        }
+      })
+      .catch(err => console.log(err));
+  }
+
+  const handleLogout = () => {
+    localStorage.removeItem('jwt');
+    setLoggedIn(false);
+    navigate('/sign-in');
+  }
+
+
+  const handleRegisterSubmit = (email, password) => {
+    auth.register(email, password)
+      .then(() => {
+        showInfoTooltip(true)
+        navigate('/sign-in', { replace: true })
+      })
+      .catch((err) => {
+        showInfoTooltip(false)
+        console.log(err)
+      })
+  }
+
 
   return (
-      <AppContext.Provider value={{ currentUser, isLoggedIn }}>
-        <div className="page">
-          <div className="page__container">
-            <Header handleLogout={handleLogout} email={currentEmail} />
-            <Routes>
-              <Route path="/" element={<ProtectedRoute element={Main}
-                onEditProfile={handleEditProfileClick}
-                onAddPlace={handleAddPlaceClick}
-                onEditAvatar={handleEditAvatarClick}
-                onCardClick={handleCardClick}
-                cards={cards}
-                onCardLike={handleCardLike}
-                onCardDelete={handleCardDelete} />}
-              />
-              <Route path="/sign-up" element={<Register onSubmit={showInfoTooltip} />} />
-              <Route path="/sign-in" element={<Login handleLogin={handleLogin} />} />
-            </Routes>
-            <Footer />
-            <EditProfilePopup isOpen={isEditProfilePopupOpen} onClose={closeAllPopups} onUpdateUser={handleUpdateUser} />
-            <EditAvatarPopup isOpen={isEditAvatarPopupOpen} onClose={closeAllPopups} onUpdateAvatar={handleUpdateAvatar} />
-            <AddPlacePopup isOpen={isAddPlacePopupOpen} onClose={closeAllPopups} onAddPlace={handleAddPlaceSubmit} />
-            <PopupWithForm
-              name='popup-delete'
-              title='Вы уверены?'
-              isOpen={isDeleteCardPopupOpen}
-              submitText='Да'
-              submitId='delete-confirm'
-              onClose={closeAllPopups}>
-            </PopupWithForm>
-
-            <ImagePopup
-              selectedCard={selectedCard}
-              isOpen={isImagePopupOpen}
-              onClose={closeAllPopups}
+    <AppContext.Provider value={{ currentUser, isLoggedIn }}>
+      <div className="page">
+        <div className="page__container">
+          <Header handleLogout={handleLogout} email={currentEmail} />
+          <Routes>
+            <Route path="/" element={<ProtectedRoute element={Main}
+              onEditProfile={handleEditProfileClick}
+              onAddPlace={handleAddPlaceClick}
+              onEditAvatar={handleEditAvatarClick}
+              onCardClick={handleCardClick}
+              cards={cards}
+              onCardLike={handleCardLike}
+              onCardDelete={handleCardDelete} />}
             />
-            <InfoTooltip isOpen={isInfoTooltipPopupOpen} onClose={closeAllPopups} isRegisterOk={isRegisterOk} />
-          </div>
+            <Route path="/sign-up" element={<Register onSubmit={handleRegisterSubmit} />} />
+            <Route path="/sign-in" element={<Login onSubmit={handleLoginSubmit} />} />
+          </Routes>
+          <Footer />
+          <EditProfilePopup isOpen={isEditProfilePopupOpen} onClose={closeAllPopups} onUpdateUser={handleUpdateUser} />
+          <EditAvatarPopup isOpen={isEditAvatarPopupOpen} onClose={closeAllPopups} onUpdateAvatar={handleUpdateAvatar} />
+          <AddPlacePopup isOpen={isAddPlacePopupOpen} onClose={closeAllPopups} onAddPlace={handleAddPlaceSubmit} />
+          <PopupWithForm
+            name='popup-delete'
+            title='Вы уверены?'
+            isOpen={isDeleteCardPopupOpen}
+            submitText='Да'
+            submitId='delete-confirm'
+            onClose={closeAllPopups}>
+          </PopupWithForm>
+
+          <ImagePopup
+            selectedCard={selectedCard}
+            isOpen={isImagePopupOpen}
+            onClose={closeAllPopups}
+          />
+          <InfoTooltip isOpen={isInfoTooltipPopupOpen} onClose={closeAllPopups} isRegisterOk={isRegisterOk} />
         </div>
-      </AppContext.Provider>
+      </div>
+    </AppContext.Provider>
   );
 }
 
